@@ -1,0 +1,17 @@
+.dot {
+  background-color: green;
+  height: 12px;
+  width: 12px;
+  border-radius: 2px;
+  margin: 1px;
+}
+
+.dots-container {
+  transform: rotate(180deg);
+  border-radius: 1px;
+}
+
+.dots-container:hover, .dots-container:focus {
+  cursor: pointer;
+  outline: 3px solid rgba(0, 0, 0, 0.5);
+}

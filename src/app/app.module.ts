@@ -9,11 +9,19 @@ import {FlexLayoutModule} from '@angular/flex-layout';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDividerModule} from '@angular/material/divider';
 import {OpenSecretsService} from './shared/open-secrets.service';
+import { BarChartComponent } from './bar-chart/bar-chart.component';
+import { BarComponent } from './bar/bar.component';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    BarChartComponent,
+    BarComponent
   ],
   imports: [
     HttpClientModule,
@@ -23,6 +31,10 @@ import {OpenSecretsService} from './shared/open-secrets.service';
     FlexLayoutModule,
     MatButtonModule,
     MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule,
   ],
   providers: [OpenSecretsService],
   bootstrap: [AppComponent]

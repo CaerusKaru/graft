@@ -1,14 +1,55 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div fxLayout="column" fxFlexFill>
-  <div fxFlex>
-    <router-outlet></router-outlet>
+<div fxLayout="column" fxFlexFill style="background-color: #ededee;">
+  <h2 class="mat-headline" fxFlexAlign="center" style="padding: 8px">Money in Politics</h2>
+  <div fxFlex fxLayout>
+    <div fxFlex fxLayout="column" fxLayoutAlign="end">
+      <div fxFlex fxLayout>
+        <div fxLayout="column-reverse" fxLayoutGap="23px" style="margin-bottom: 24px; margin-left: 12px;">
+          <div>10</div>
+          <div>20</div>
+          <div>30</div>
+          <div>40</div>
+          <div>50</div>
+          <div>60</div>
+          <div>70</div>
+          <div>80</div>
+          <div>90</div>
+          <div>100</div>
+        </div>
+        <div fxFlex fxLayout fxLayoutAlign="space-around">
+          <div fxFlex="170px" fxLayout="column-reverse" *ngFor="let bar of ['2012', '2014', '2016', '2018']">
+            <span fxFlexAlign="center" class="mat-body-2">{{bar}}</span>
+            <div fxFlex fxLayout="column-reverse">
+              <viz-bar [year]="bar"></viz-bar>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height: 200px; overflow: auto; padding: 12px; margin-left: 12px" [@marblesAnimation]>
+        <img *ngFor="let marble of marbles"
+             tabindex="0"
+             class="marble"
+             matTooltip="Congressman"
+             src="../assets/portraits/{{marble}}.jpg"
+             alt="marble {{marble}}">
+      </div>
+    </div>
   </div>
   <mat-divider></mat-divider>
-  <div fxLayout="row" fxLayoutAlign="space-between none">
-    <div style="padding: 8px;">
-      <button mat-button>Sample Button</button>
+  <div fxLayout="row" fxLayoutAlign="space-between none" style="background-color: white;">
+    <div style="padding: 8px;" fxFlexAlign="center">
+      <button mat-button>CLEAR</button>
     </div>
     <mat-divider vertical></mat-divider>
+    <mat-form-field fxFlexOffset="16px" style="padding-top: 8px">
+      <input matInput placeholder="Filter by Name">
+    </mat-form-field>
+    <mat-form-field fxFlexOffset="16px" style="padding-top: 8px">
+      <mat-select placeholder="Select an Organization">
+        <mat-option value="tufts">Tufts University</mat-option>
+        <mat-option value="facebook">Facebook</mat-option>
+      </mat-select>
+    </mat-form-field>
     <span fxFlex></span>
     <mat-divider vertical></mat-divider>
     <h2 class="mat-body-2" fxFlexAlign="center" fxFlexOffset="32px" fxFlex="64px">Graft</h2>
