@@ -10,18 +10,20 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatDividerModule} from '@angular/material/divider';
 import {OpenSecretsService} from './shared/open-secrets.service';
 import { BarChartComponent } from './bar-chart/bar-chart.component';
-import { BarComponent } from './bar/bar.component';
+import {BarComponent, PieChartDialogComponent} from './bar/bar.component';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatDialogModule} from '@angular/material/dialog';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     BarChartComponent,
-    BarComponent
+    BarComponent,
+    PieChartDialogComponent,
   ],
   imports: [
     HttpClientModule,
@@ -35,8 +37,10 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
+    MatDialogModule,
   ],
   providers: [OpenSecretsService],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  entryComponents: [PieChartDialogComponent],
 })
 export class AppModule { }

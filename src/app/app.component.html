@@ -26,11 +26,14 @@
         </div>
       </div>
       <div style="height: 200px; overflow: auto; padding: 12px; margin-left: 12px" [@marblesAnimation]>
-        <img *ngFor="let marble of marbles"
+        <img *ngFor="let marble of marbles; index as i"
              tabindex="0"
              class="marble"
+             [style.width]="(i >= 10) ? '32px' : (32 + (32 - (2 * i))) + 'px'"
+             [style.height]="(i >= 10) ? '32px' : (32 + (32 - (2 * i))) + 'px'"
              matTooltip="Congressman"
              src="../assets/portraits/{{marble}}.jpg"
+             (click)="update()"
              alt="marble {{marble}}">
       </div>
     </div>
@@ -38,7 +41,7 @@
   <mat-divider></mat-divider>
   <div fxLayout="row" fxLayoutAlign="space-between none" style="background-color: white;">
     <div style="padding: 8px;" fxFlexAlign="center">
-      <button mat-button>CLEAR</button>
+      <button mat-button (click)="update()">RESET</button>
     </div>
     <mat-divider vertical></mat-divider>
     <mat-form-field fxFlexOffset="16px" style="padding-top: 8px">

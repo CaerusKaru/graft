@@ -1,6 +1,7 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {OpenSecretsService} from './shared/open-secrets.service';
 import {animate, query, stagger, style, transition, trigger} from '@angular/animations';
+import {BarComponent} from './bar/bar.component';
 
 @Component({
   selector: 'viz-root',
@@ -20,8 +21,10 @@ import {animate, query, stagger, style, transition, trigger} from '@angular/anim
 })
 export class AppComponent implements OnInit {
 
-  chartData: any[];
-  marbles = MARBLES
+  @ViewChildren(BarComponent) private bars: QueryList<BarComponent>;
+
+  // chartData: any[];
+  marbles = [...MARBLES, ...MARBLES, ...MARBLES, ...MARBLES];
 
   constructor(private openSecretsService: OpenSecretsService) {
     // this.openSecretsService.candContrib('N00007360')
@@ -45,19 +48,23 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // give everything a chance to get loaded before starting the animation to reduce choppiness
-    setTimeout(() => {
-      this.generateData();
-      // change the data periodically
-      setInterval(() => this.generateData(), 3000);
-    }, 1000);
+    // setTimeout(() => {
+    //   this.generateData();
+    //   // change the data periodically
+    //   setInterval(() => this.generateData(), 3000);
+    // }, 1000);
   }
 
-  generateData() {
-    this.chartData = [];
-    for (let i = 0; i < (8 + Math.floor(Math.random() * 10)); i++) {
-      this.chartData.push([`Index ${i}`, Math.floor(Math.random() * 100)]);
-    }
+  update() {
+    this.bars.forEach(b => b.update());
   }
+
+  // generateData() {
+  //   this.chartData = [];
+  //   for (let i = 0; i < (8 + Math.floor(Math.random() * 10)); i++) {
+  //     this.chartData.push([`Index ${i}`, Math.floor(Math.random() * 100)]);
+  //   }
+  // }
 }
 
 const MARBLES = [
