@@ -1,7 +1,12 @@
-import {AfterViewInit, Component, ElementRef, HostListener, Inject, Input, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, HostListener, Inject, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 import {animate, query, stagger, style, transition, trigger} from '@angular/animations';
 import {MatDialog, MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import * as d3 from 'd3';
+import * as d3Scale from 'd3-scale-chromatic';
+import {ContributorResponse} from '../../../types/Contributor';
+import {MatSnackBar} from '@angular/material';
+
+export const DOTS_AREA = 14 ** 2;
 
 @Component({
   selector: 'viz-bar',
@@ -9,7 +14,7 @@ import * as d3 from 'd3';
   styleUrls: ['./bar.component.scss'],
   animations: [
     trigger('dotsAnimation', [
-      transition('void => *', [
+      transition('false => true', [
         query('.dot', style({ opacity: '0'})),
         query('.dot',
           stagger('30ms', [
@@ -19,43 +24,64 @@ import * as d3 from 'd3';
     ])
   ]
 })
-export class BarComponent implements OnInit, AfterViewInit {
+export class BarComponent implements OnInit, OnChanges {
 
   @Input()
-  year: string;
+  year: number;
+
+  @Input()
+  total: number;
+
+  @Input()
+  high: number;
+
+  @Input()
+  contribs: ContributorResponse[];
 
   // old: 336
-  dots = new Array(Math.ceil(276 * Math.random()));
+  dots = [];
+  dotsArea = 0;
+  loaded = false;
 
   @HostListener('click')
   onclick() {
-    this.dialog.open(PieChartDialogComponent, {
-      width: '1000px',
-      maxWidth: '100vw'
-    });
+    if (this.contribs.length > 0) {
+      this.dialog.open(PieChartDialogComponent, {
+        width: '1000px',
+        maxWidth: '100vw',
+        data: {
+          contribs: this.contribs
+        }
+      });
+    } else {
+      this.snackbar.open('No contribution data available', 'DISMISS');
+    }
   }
 
-  constructor(private elementRef: ElementRef, public dialog: MatDialog) {
+  constructor(private elementRef: ElementRef, public dialog: MatDialog, public snackbar: MatSnackBar) {
   }
 
   ngOnInit() {
-  }
-
-  ngAfterViewInit() {
-    const rect = this.elementRef.nativeElement.getBoundingClientRect();
-    const height = rect.bottom - rect.top;
-    const width = rect.right - rect.left;
-    console.log(width * height);
-  }
-
-  update() {
-    this.dots = [];
-    // wait a tick so that the change detection can re-run the animation
     setTimeout(() => {
-      this.dots = new Array(Math.ceil(336 * Math.random()));
+      const rect = this.elementRef.nativeElement.parentElement.getBoundingClientRect();
+      const width = rect.right - rect.left;
+      const height = rect.bottom - rect.top;
+      this.dotsArea = width * height;
+      this.loaded = true;
+      this.initDots();
     }, 0);
   }
 
+  ngOnChanges() {
+    this.initDots();
+  }
+
+  private initDots() {
+    const maxDots = Math.floor(this.dotsArea / DOTS_AREA);
+    const percent = this.total / this.high;
+    const numDots = Math.floor(maxDots * percent);
+    this.dots = new Array(numDots > 0 ? numDots - 2 : 0);
+  }
 }
 
 @Component({
@@ -80,30 +106,54 @@ export class PieChartDialogComponent implements AfterViewInit {
 
   constructor(public dialogRef: MatDialogRef<PieChartDialogComponent>,
               @Inject(MAT_DIALOG_DATA) public data: any) {
-
-
   }
 
   ngAfterViewInit() {
-    const yellow = d3.interpolateYlGn(0), // 'rgb(255, 255, 229)'
-      yellowGreen = d3.interpolateYlGn(0.5), // 'rgb(120, 197, 120)'
-      green = d3.interpolateYlGn(1); // 'rgb(0, 69, 41)'
+
+    const contribs = this.data.contribs;
+    const allContribs = new Map();
+    for (let i = 0; i < contribs.length; i++) {
+      const contrib = contribs[i];
+      for (let j = 0; j < contrib.contributors.length; j++) {
+        const contributor = contrib.contributors[j];
+        const oldValue = allContribs.get(contributor.org_name) || 0;
+        const newValue = oldValue + Number(contributor.total);
+        allContribs.set(contributor.org_name, newValue);
+      }
+    }
+
+    const data = Array.from(allContribs)
+      .map(([name, value]) => {
+        return {org: name, contribution: value};
+      })
+      .sort((a, b) => {
+        if (a.contribution === b.contribution) {
+          return 0;
+        } else {
+          return a.contribution > b.contribution ? -1 : 1;
+        }
+      })
+      .slice(0, 10);
 
     const svg = d3.select(this.pie.nativeElement),
       width = +svg.attr('width'),
       height = +svg.attr('height'),
-      radius = Math.min(width, height) / 2,
-      g = svg.append('g').attr('transform', 'translate(' + (23 * width / 32) + ',' + (height / 2) + ')');
+      radius = (Math.min(width, height) / 2) - 15,
+      g = svg.append('g').attr('transform', `translate(${2 * width / 5}, ${(height / 2)})`);
 
     svg.on('click', function() {
       d3.selectAll('.org').transition()
-        .duration(1000)
+        .duration(500)
         .ease(d3.easeLinear)
         .style('opacity', 1.0);
+      d3.selectAll('.contrib.org').transition()
+        .duration(500)
+        .ease(d3.easeLinear)
+        .style('opacity', 0);
       d3.event.stopPropagation();
     });
 
-    const color = d3.scaleOrdinal(d3.schemeBrBG[11]);
+    const color = d3.scaleOrdinal(d3Scale.schemeCategory10);
 
     const pie = d3.pie()
       .sort(null)
@@ -114,55 +164,8 @@ export class PieChartDialogComponent implements AfterViewInit {
       .innerRadius(0);
 
     const label = d3.arc()
-      .outerRadius(radius - 75)
-      .innerRadius(radius - 75);
-
-    const data = [
-      {
-        org: 'Tufts University',
-        contribution: 50000
-      },
-      {
-        org: 'ExxonMobil',
-        contribution: 20000
-      },
-      {
-        org: 'Facebook',
-        contribution: 75000
-      },
-      {
-        org: 'Google',
-        contribution: 100000
-      },
-      {
-        org: 'Palantir',
-        contribution: 35115
-      },
-      {
-        org: 'Sesame Street',
-        contribution: 56415
-      },
-      {
-        org: 'Fannie Mae',
-        contribution: 65410
-      },
-      {
-        org: 'Tesla',
-        contribution: 4441
-      },
-      {
-        org: 'The Man',
-        contribution: 13254
-      },
-      {
-        org: 'The All-New $1 Triple Melt Burrito by Taco Bell',
-        contribution: 41323
-      },
-      {
-        org: 'Other',
-        contribution: 30246
-      },
-    ];
+      .outerRadius(radius + 15)
+      .innerRadius(radius + 15);
 
     const arc = g.selectAll('.arc')
       .data(pie(data as any))
@@ -175,25 +178,37 @@ export class PieChartDialogComponent implements AfterViewInit {
       .attr('fill', (d, i) => color(i + ''))
       .on('click', function(d, i) {
         d3.selectAll('.org').transition()
-          .duration(1000)
+          .duration(500)
           .ease(d3.easeLinear)
           .style('opacity', 0.25);
+        d3.selectAll('.contrib.org').transition()
+          .duration(500)
+          .ease(d3.easeLinear)
+          .style('opacity', 0);
         d3.selectAll('.org-' + i).transition()
-          .duration(1000)
+          .duration(500)
           .ease(d3.easeLinear)
           .style('opacity', 1.0);
         d3.event.stopPropagation();
       });
 
+    arc.append('text')
+      .attr('class', (d, i) => ('contrib org org-' + i))
+      .attr('transform', d => `translate(${label.centroid(d as any)})`)
+      .attr('dy', '0.35em')
+      .style('opacity', 0)
+      .text(d => `$${d.data['contribution']}`);
+
     const box_lw = 30;
     const legend = svg.append('g')
+      .attr('class', 'legend')
       .attr('font-size', 16)
       .attr('text-anchor', 'end')
-      .attr('transform', 'translate(' + -(3 * width) / 5 + ',' + (height / 11) + ')')
+      .attr('transform', `translate(-50, ${height / 7})`)
       .selectAll('g')
       .data(data, (d) => d['org'])
       .enter().append('g')
-      .attr('transform', function(d, i) { return 'translate(' + 0 + ',' + i * (box_lw + 2) + ')'; });
+      .attr('transform', (d, i) => `translate(0, ${i * (box_lw + 2)})`);
 
     legend.append('rect')
       .attr('class', (d, i) => ('org org-' + i))
@@ -202,16 +217,16 @@ export class PieChartDialogComponent implements AfterViewInit {
       .attr('height', box_lw)
       .attr('fill', (d, i) => color(i + ''))
       .on('click', (d, i) => {
-        arc.append('text')
-          .attr('transform', (e) => ('translate(' + label.centroid(e as any) + ')'))
-          .attr('dy', '0.35em')
-          .text((e) => e['contribution']);
         d3.selectAll('.org').transition()
-          .duration(1000)
+          .duration(500)
           .ease(d3.easeLinear)
           .style('opacity', 0.25);
+        d3.selectAll('.contrib.org').transition()
+          .duration(500)
+          .ease(d3.easeLinear)
+          .style('opacity', 0);
         d3.selectAll('.org-' + i).transition()
-          .duration(1000)
+          .duration(500)
           .ease(d3.easeLinear)
           .style('opacity', 1.0);
         d3.event.stopPropagation();
@@ -222,7 +237,13 @@ export class PieChartDialogComponent implements AfterViewInit {
       .attr('x', width - (box_lw * 1.3))
       .attr('y', box_lw / 2)
       .attr('dy', '0.32em')
-      .text(function(d) { return d.org; });
+      .text((d) => {
+        if (d.org.length > 30) {
+          return d.org.substring(0, 30) + '...';
+        } else {
+          return d.org;
+        }
+      });
   }
 
 

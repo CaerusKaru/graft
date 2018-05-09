@@ -15,3 +15,10 @@
   cursor: pointer;
   outline: 3px solid rgba(0, 0, 0, 0.5);
 }
+
+:host {
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  flex-direction: column-reverse;
+  display: flex;
+}

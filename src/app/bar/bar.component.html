@@ -1,3 +1,4 @@
-<div fxLayout="row wrap" [@dotsAnimation] class="dots-container" tabindex="0" *ngIf="dots.length > 0">
+<div fxLayout="row wrap" [@dotsAnimation]="loaded" class="dots-container" tabindex="0"
+     matTooltip="Total: {{total | currency}} dollars" matTooltipPosition="above" fxFill>
   <span class="dot" *ngFor="let dot of dots" fxFlexAlign="end"></span>
 </div>

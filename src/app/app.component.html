@@ -1,56 +1,57 @@
-<!--The content below is only a placeholder and can be replaced.-->
 <div fxLayout="column" fxFlexFill style="background-color: #ededee;">
+  <span class="mat-caption" fxFlexAlign="end" style="padding-right:5px">Data provided by the Center for Responsive Politics</span>
   <h2 class="mat-headline" fxFlexAlign="center" style="padding: 8px">Money in Politics</h2>
   <div fxFlex fxLayout>
-    <div fxFlex fxLayout="column" fxLayoutAlign="end">
+    <div fxFlex fxLayout="column" fxLayoutAlign="end" *ngIf="legislators && legislators.length > 0">
       <div fxFlex fxLayout>
-        <div fxLayout="column-reverse" fxLayoutGap="23px" style="margin-bottom: 24px; margin-left: 12px;">
-          <div>10</div>
-          <div>20</div>
-          <div>30</div>
-          <div>40</div>
-          <div>50</div>
-          <div>60</div>
-          <div>70</div>
-          <div>80</div>
-          <div>90</div>
-          <div>100</div>
+        <span style="writing-mode: vertical-lr; transform: rotate(180deg)" fxFlexOffset="5px" fxFlexAlign="center"><b>(in US dollars)</b></span>
+        <div fxLayout="column-reverse" fxLayoutGap="24px"
+             style="margin-bottom: 24px; margin-left: 12px; text-align: right;">
+          <span style="line-height: 14px" *ngFor="let val of rangeValues">{{val}}</span>
         </div>
         <div fxFlex fxLayout fxLayoutAlign="space-around">
-          <div fxFlex="170px" fxLayout="column-reverse" *ngFor="let bar of ['2012', '2014', '2016', '2018']">
-            <span fxFlexAlign="center" class="mat-body-2">{{bar}}</span>
+          <div fxFlex="170px" fxLayout="column-reverse" *ngFor="let bar of barDefs; index as i">
+            <span fxFlexAlign="center" class="mat-body-2">{{bar.name}}</span>
             <div fxFlex fxLayout="column-reverse">
-              <viz-bar [year]="bar"></viz-bar>
+              <viz-bar [year]="bar.year" [total]="bar.total" [high]="rangeHigh" [contribs]="contribRefs[i]"></viz-bar>
             </div>
           </div>
         </div>
       </div>
-      <div style="height: 200px; overflow: auto; padding: 12px; margin-left: 12px" [@marblesAnimation]>
-        <img *ngFor="let marble of marbles; index as i"
-             tabindex="0"
-             class="marble"
-             [style.width]="(i >= 10) ? '32px' : (32 + (32 - (2 * i))) + 'px'"
-             [style.height]="(i >= 10) ? '32px' : (32 + (32 - (2 * i))) + 'px'"
-             matTooltip="Congressman"
-             src="../assets/portraits/{{marble}}.jpg"
-             (click)="update()"
-             alt="marble {{marble}}">
+      <div fxLayout style="height: 200px; overflow: auto; padding: 12px; margin-left: 12px" class="marble-container" #marbleContainer>
+        <div *ngFor="let party of parties; last as l; first as f"
+             [fxFlex]="party.flex" [@marblesAnimation] fxLayout="column">
+          <span [ngStyle]="{color: party.color, paddingLeft: f ? '0' : '10px'}">{{party.name}}</span>
+          <div fxLayout="row wrap" style="overflow-y: auto; padding: 2px;" fxFlexOffset="10px" class="party-container"
+               [ngStyle]="!l ? {borderRight: '1px solid rgba(0,0,0,0.12)', paddingRight: '10px', paddingLeft: f ? '0' : '10px'} : {paddingLeft: '10px'}">
+            <!--[style.width]="(i >= 10) ? '32px' : (32 + (32 - (2 * i))) + 'px'"-->
+            <!--[style.height]="(i >= 10) ? '32px' : (32 + (32 - (2 * i))) + 'px'"-->
+            <img *ngFor="let marble of legislators | marbleParty:party.code | marbleName:currentName; index as i"
+                 tabindex="0"
+                 class="marble"
+                 [id]="marble.cid"
+                 #marbleRef
+                 [matTooltip]="marble.firstlast"
+                 src="assets/portraits/{{marble.cid}}.jpg"
+                 (click)="activate(marbleRef)"
+                 [alt]="marble.firstlast">
+          </div>
+        </div>
       </div>
     </div>
   </div>
   <mat-divider></mat-divider>
   <div fxLayout="row" fxLayoutAlign="space-between none" style="background-color: white;">
     <div style="padding: 8px;" fxFlexAlign="center">
-      <button mat-button (click)="update()">RESET</button>
+      <button mat-button (click)="clear()">RESET</button>
     </div>
     <mat-divider vertical></mat-divider>
     <mat-form-field fxFlexOffset="16px" style="padding-top: 8px">
-      <input matInput placeholder="Filter by Name">
+      <input matInput placeholder="Filter by Name" [(ngModel)]="currentName"/>
     </mat-form-field>
     <mat-form-field fxFlexOffset="16px" style="padding-top: 8px">
       <mat-select placeholder="Select an Organization">
-        <mat-option value="tufts">Tufts University</mat-option>
-        <mat-option value="facebook">Facebook</mat-option>
+        <mat-option *ngFor="let org of organizations" value="org.id">{{org.name}}</mat-option>
       </mat-select>
     </mat-form-field>
     <span fxFlex></span>

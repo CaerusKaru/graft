@@ -11,7 +11,7 @@ import {Legislator, LegislatorResponse} from '../types/Legislator';
 router.get('/api/getLegislators', async (req, res) => {
 
   const id = req.query.id;
-  const url = `${API_ADD}candSector&id=${id}`;
+  const url = `${API_ADD}getLegislators&id=${id}`;
 
   let respRaw;
   try {

@@ -7,9 +7,20 @@
   height: 32px;
   width: 32px;
   cursor: pointer;
+  padding: 2px;
 }
 
 .marble:hover {
   border: 2px solid rgba(0, 0, 0, 0.5);
   margin: -2px;
+}
+
+.marble:focus {
+  border: 2px solid rgba(0, 0, 0, 0.5);
+  margin: -2px;
+  outline: none;
+}
+
+.marble-container.active img:not(.selected) {
+  opacity: 0.6;
 }
